@@ -3,20 +3,20 @@ import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 
 import { AppComponent } from './app.component';
-import { SourceLanguageComponent } from './source-language/source-language.component';
-import { DestinationLanguageComponent } from './destination-language/destination-language.component';
+import { StoreModule } from '@ngrx/store';
+import { SourceLanguageModule } from './source-language/source-language.module';
+import { DestinationLanguageModule } from './destination-language/destination-language.module';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    SourceLanguageComponent,
-    DestinationLanguageComponent
-  ],
+  declarations: [AppComponent],
   imports: [
     BrowserModule,
-    HttpClientModule
+    HttpClientModule,
+    SourceLanguageModule,
+    DestinationLanguageModule,
+    StoreModule.forRoot({}, {}),
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}
