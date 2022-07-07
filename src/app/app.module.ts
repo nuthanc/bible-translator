@@ -6,6 +6,8 @@ import { AppComponent } from './app.component';
 import { StoreModule } from '@ngrx/store';
 import { SourceLanguageModule } from './source-language/source-language.module';
 import { DestinationLanguageModule } from './destination-language/destination-language.module';
+import { EffectsModule } from '@ngrx/effects';
+import { appReducer } from './state/app.reducer';
 
 @NgModule({
   declarations: [AppComponent],
@@ -14,7 +16,8 @@ import { DestinationLanguageModule } from './destination-language/destination-la
     HttpClientModule,
     SourceLanguageModule,
     DestinationLanguageModule,
-    StoreModule.forRoot({}, {}),
+    StoreModule.forRoot(appReducer),
+    EffectsModule.forRoot([]),
   ],
   providers: [],
   bootstrap: [AppComponent],

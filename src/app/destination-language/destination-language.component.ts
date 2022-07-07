@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { debounceTime, filter, map, switchMap } from 'rxjs';
+import { debounceTime, map, switchMap } from 'rxjs';
 import { TranslatorService } from '../common/translator.service';
 
 @Component({
@@ -9,10 +9,9 @@ import { TranslatorService } from '../common/translator.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DestinationLanguageComponent implements OnInit {
-  content$ = this.translatorService.searchText$.pipe(
-    filter((reference) => Boolean(reference)),
+  content$ = this.translatorService.searchTextReady$.pipe(
     debounceTime(500),
-    switchMap(() => this.translatorService.destLanguage$),
+    switchMap(() => this.translatorService.destLanguageText$),
     map((reference) => reference.data.content)
   );
   constructor(private translatorService: TranslatorService) {}

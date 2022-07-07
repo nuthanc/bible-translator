@@ -1,6 +1,11 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, EMPTY, map, Observable, Subject } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { catchError, EMPTY, Observable, Subject, take } from 'rxjs';
+import { environment } from 'src/environments/environment';
+import { BookListResponse } from '../models/books.model';
+import { State } from '../state/app.reducer';
+import { BibleVersion } from './constants';
 
 // 'https://api.scripture.api.bible/v1/bibles/a33a100f04f2752e-01/verses/GEN.1.1?include-chapter-numbers=false&include-verse-numbers=false&include-titles=false&content-type=text'
 // https://scripture.api.bible/livedocs#/Search
@@ -13,53 +18,28 @@ export interface VerseResponse {
   };
 }
 
-export type BookObject = {
-  id: string;
-  name: string;
-};
-
-export interface BookListResponse {
-  data: BookObject[];
-}
+const headers = new HttpHeaders().append('api-key', environment.api_key);
 
 @Injectable({
   providedIn: 'root',
 })
 export class TranslatorService {
-  private searchText = new Subject<string>();
-  searchText$ = this.searchText.asObservable();
-  headers = new HttpHeaders().append(
-    'api-key',
-    'a1be70653b141ccd25b339e9be580d5a'
-  );
-  englishVersionId = '06125adad2d5898a-01';
-  kannadaBibleVersionId = 'a33a100f04f2752e-01';
-  destLanguage$!: Observable<VerseResponse>;
-  bookDict!: Record<string, any>;
+  private searchTextReady = new Subject<void>();
+  searchTextReady$ = this.searchTextReady.asObservable();
+  bookDict!: Record<string, string>;
 
-  constructor(private http: HttpClient) {
-    this.http
-      .get<BookListResponse>(
-        `https://api.scripture.api.bible/v1/bibles/${this.englishVersionId}/books`,
-        {
-          headers: this.headers,
-        }
-      )
-      .pipe(
-        map((resp) => {
-          return resp.data.reduce((res, val) => {
-            return {
-              ...res,
-              [val.name]: val.id,
-            };
-          }, {});
-        })
-      )
-      .subscribe((bookDict) => (this.bookDict = bookDict));
-  }
+  destLanguageText$!: Observable<VerseResponse>;
+
+  constructor(private http: HttpClient, private store: Store<State>) {}
 
   setSearchText(text: string) {
     this.parseText(text);
+  }
+
+  getBooks(url: string) {
+    return this.http.get<BookListResponse>(url, {
+      headers: headers,
+    });
   }
 
   parseText(text: string) {
@@ -77,19 +57,23 @@ export class TranslatorService {
         verse = numbers[2];
       }
       if (book && chapter && verse) {
+        this.store
+          .select('books')
+          .pipe(take(1))
+          .subscribe((val) => (this.bookDict = val));
         const key =
           Object.keys(this.bookDict).find((key) => key.includes(book)) ?? 'GEN';
         const parsedText = `${this.bookDict[key]}.${chapter}.${verse}`;
         this.setDestLanguage(parsedText);
-        this.searchText.next(text);
+        this.searchTextReady.next();
       }
     }
   }
 
   setDestLanguage(parsedText: string) {
-    this.destLanguage$ = this.http
+    this.destLanguageText$ = this.http
       .get<VerseResponse>(
-        `https://api.scripture.api.bible/v1/bibles/a33a100f04f2752e-01/verses/${parsedText}?include-chapter-numbers=false&include-verse-numbers=false&include-titles=false&content-type=text`,
+        `https://api.scripture.api.bible/v1/bibles/${BibleVersion.KANNADA}/verses/${parsedText}?include-chapter-numbers=false&include-verse-numbers=false&include-titles=false&content-type=text`,
         { headers: this.headers }
       )
       .pipe(catchError(() => EMPTY));
