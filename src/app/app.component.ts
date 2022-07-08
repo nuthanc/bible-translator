@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { State } from './state/app.reducer';
-import * as AppActions from './state/app.actions';
+import { State } from './state/book.reducer';
+import * as BookActions from './state/book.actions';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +14,6 @@ export class AppComponent implements OnInit {
   constructor(private store: Store<State>) {}
 
   ngOnInit(): void {
-    this.store.dispatch(AppActions.loadBooks());
+    this.store.dispatch(BookActions.loadBooks());
   }
 }

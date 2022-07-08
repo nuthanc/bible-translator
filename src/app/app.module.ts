@@ -7,7 +7,10 @@ import { StoreModule } from '@ngrx/store';
 import { SourceLanguageModule } from './source-language/source-language.module';
 import { DestinationLanguageModule } from './destination-language/destination-language.module';
 import { EffectsModule } from '@ngrx/effects';
-import { appReducer } from './state/app.reducer';
+import { bookReducer } from './state/book.reducer';
+import { BookEffects } from './state/book.effects';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { environment } from '../environments/environment';
 
 @NgModule({
   declarations: [AppComponent],
@@ -16,8 +19,12 @@ import { appReducer } from './state/app.reducer';
     HttpClientModule,
     SourceLanguageModule,
     DestinationLanguageModule,
-    StoreModule.forRoot(appReducer),
-    EffectsModule.forRoot([]),
+    StoreModule.forRoot({ books: bookReducer }),
+    EffectsModule.forRoot([BookEffects]),
+    StoreDevtoolsModule.instrument({
+      maxAge: 25,
+      logOnly: environment.production,
+    }),
   ],
   providers: [],
   bootstrap: [AppComponent],

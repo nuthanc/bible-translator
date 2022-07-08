@@ -4,7 +4,7 @@ import { Store } from '@ngrx/store';
 import { catchError, EMPTY, Observable, Subject, take } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { BookListResponse } from '../models/books.model';
-import { State } from '../state/app.reducer';
+import { getBooksSelector, State } from '../state/book.reducer';
 import { BibleVersion } from './constants';
 
 // 'https://api.scripture.api.bible/v1/bibles/a33a100f04f2752e-01/verses/GEN.1.1?include-chapter-numbers=false&include-verse-numbers=false&include-titles=false&content-type=text'
@@ -58,9 +58,11 @@ export class TranslatorService {
       }
       if (book && chapter && verse) {
         this.store
-          .select('books')
+          .select(getBooksSelector)
           .pipe(take(1))
-          .subscribe((val) => (this.bookDict = val));
+          .subscribe((val) => {
+            this.bookDict = val;
+          });
         const key =
           Object.keys(this.bookDict).find((key) => key.includes(book)) ?? 'GEN';
         const parsedText = `${this.bookDict[key]}.${chapter}.${verse}`;
@@ -74,7 +76,7 @@ export class TranslatorService {
     this.destLanguageText$ = this.http
       .get<VerseResponse>(
         `https://api.scripture.api.bible/v1/bibles/${BibleVersion.KANNADA}/verses/${parsedText}?include-chapter-numbers=false&include-verse-numbers=false&include-titles=false&content-type=text`,
-        { headers: this.headers }
+        { headers: headers }
       )
       .pipe(catchError(() => EMPTY));
   }
