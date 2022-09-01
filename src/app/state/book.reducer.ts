@@ -21,7 +21,8 @@ const initialState: State = {
   error: '',
 };
 
-const getBooksFeatureState = createFeatureSelector<State>('books');
+const FEATURE_NAME = 'books';
+const getBooksFeatureState = createFeatureSelector<State>(FEATURE_NAME);
 
 export const getBooksSelector = createSelector(
   getBooksFeatureState,

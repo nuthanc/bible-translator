@@ -5,7 +5,7 @@ import { catchError, EMPTY, Observable, Subject, take } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { BookListResponse } from '../models/books.model';
 import { getBooksSelector, State } from '../state/book.reducer';
-import { BibleVersion } from './constants';
+import { BASE_URL, BibleVersion } from './constants';
 
 // 'https://api.scripture.api.bible/v1/bibles/a33a100f04f2752e-01/verses/GEN.1.1?include-chapter-numbers=false&include-verse-numbers=false&include-titles=false&content-type=text'
 // https://scripture.api.bible/livedocs#/Search
@@ -32,17 +32,17 @@ export class TranslatorService {
 
   constructor(private http: HttpClient, private store: Store<State>) {}
 
-  setSearchText(text: string) {
+  setSearchText(text: string): void {
     this.parseText(text);
   }
 
-  getBooks(url: string) {
+  getBooks(url: string): Observable<BookListResponse> {
     return this.http.get<BookListResponse>(url, {
       headers: headers,
     });
   }
 
-  parseText(text: string) {
+  parseText(text: string): void {
     if (text) {
       const trimmedText = text.trim();
       let book = trimmedText.match(/[A-Za-z]+/)?.[0] || '';
@@ -72,10 +72,10 @@ export class TranslatorService {
     }
   }
 
-  setDestLanguage(parsedText: string) {
+  setDestLanguage(parsedText: string): void {
     this.destLanguageText$ = this.http
       .get<VerseResponse>(
-        `https://api.scripture.api.bible/v1/bibles/${BibleVersion.KANNADA}/verses/${parsedText}?include-chapter-numbers=false&include-verse-numbers=false&include-titles=false&content-type=text`,
+        `${BASE_URL}/${BibleVersion.KANNADA}/verses/${parsedText}?include-chapter-numbers=false&include-verse-numbers=false&include-titles=false&content-type=text`,
         { headers: headers }
       )
       .pipe(catchError(() => EMPTY));
