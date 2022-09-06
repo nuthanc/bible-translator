@@ -24,8 +24,11 @@ const headers = new HttpHeaders().append('api-key', environment.api_key);
   providedIn: 'root',
 })
 export class TranslatorService {
-  private searchTextReady = new Subject<void>();
-  searchTextReady$ = this.searchTextReady.asObservable();
+  private versesSource = new Subject<number[]>();
+  versesSource$: Observable<number[]> = this.versesSource.asObservable();
+  chapter!: string;
+  verse!: string;
+  book!: string;
   bookDict!: Record<string, string>;
 
   destLanguageText$!: Observable<VerseResponse>;
@@ -44,7 +47,11 @@ export class TranslatorService {
 
   parseText(text: string): void {
     if (text) {
-      const trimmedText = text.trim();
+      let trimmedText = text.trim();
+      let endVerse;
+      if (trimmedText.includes('-')) {
+        [trimmedText, endVerse] = trimmedText.split('-');
+      }
       let book = trimmedText.match(/[A-Za-z]+/)?.[0] || '';
       const numbers = trimmedText.match(/\d+/g);
       let chapter, verse;
@@ -63,17 +70,24 @@ export class TranslatorService {
           .subscribe((val) => {
             this.bookDict = val;
           });
+        this.chapter = chapter;
+        this.verse = verse;
         const key =
           Object.keys(this.bookDict).find((key) => key.includes(book)) ?? 'GEN';
-        const parsedText = `${this.bookDict[key]}.${chapter}.${verse}`;
-        this.setDestLanguage(parsedText);
-        this.searchTextReady.next();
+        this.book = this.bookDict[key];
+
+        const verseArray = [Number(verse)];
+        if (endVerse) {
+          verseArray.push(Number(endVerse));
+        }
+        this.versesSource.next(verseArray);
       }
     }
   }
 
-  setDestLanguage(parsedText: string): void {
-    this.destLanguageText$ = this.http
+  getVerse(verse: number): Observable<VerseResponse> {
+    const parsedText = `${this.book}.${this.chapter}.${verse}`;
+    return this.http
       .get<VerseResponse>(
         `${BASE_URL}/${BibleVersion.KANNADA}/verses/${parsedText}?include-chapter-numbers=false&include-verse-numbers=false&include-titles=false&content-type=text`,
         { headers: headers }

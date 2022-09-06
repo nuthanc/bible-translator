@@ -1,5 +1,8 @@
 <div>
   <h4>Destination Language(Kannada)</h4>
-  <!-- <div [innerHTML]="content"></div> -->
-  {{ content$ | async }}
+  <ng-container *ngIf="content$ | async as content">
+    <div *ngFor="let verse of content">
+      {{ verse }}
+    </div>
+  </ng-container>
 </div>
